@@ -31,7 +31,6 @@
 // ==/UserScript==
 //
 // Version 1.0, released April 2017
-// -- Added vendor blacklist
 
 var defaultScoreThreshold = 50;
 var defaultPercentThreshold = 98.5;
@@ -60,63 +59,52 @@ var percentThreshold = defaultPercentThreshold;
 var scoreMax = defaultScoreMax;
 var noTrsChecked = false;
 
-var abefActiveControl = null;
+var ebefActiveControl = null;
 
-function getAbefConfiguration()
+function getEbefConfiguration()
 {
-    var abefParam = GM_getValue("scoreThreshold", xText);
-    if (abefParam != xText)
-    {
-        scoreThreshold = abefParam - 0;
-    }
-    else
-    {
+    var ebefParam = GM_getValue("scoreThreshold", xText);
+    if (ebefParam != xText) {
+        scoreThreshold = ebefParam - 0;
+    } else {
         GM_setValue("scoreThreshold", scoreThreshold + "");
     }
-    abefParam = GM_getValue("percentThreshold", xText);
-    if (abefParam != xText)
-    {
-        percentThreshold = abefParam - 0;
-    }
-    else
-    {
+
+    ebefParam = GM_getValue("percentThreshold", xText);
+    if (ebefParam != xText) {
+        percentThreshold = ebefParam - 0;
+    } else {
         GM_setValue("percentThreshold", percentThreshold + "");
     }
-    abefParam = GM_getValue("scoreMax", xText);
-    if (abefParam != xText)
-    {
-        if (isNaN(parseInt(abefParam)))
-        {
+
+    ebefParam = GM_getValue("scoreMax", xText);
+    if (ebefParam != xText) {
+        if (isNaN(parseInt(ebefParam))) {
             scoreMax = "";
+        } else {
+            scoreMax = ebefParam - 0;
         }
-        else
-        {
-            scoreMax = abefParam - 0;
-        }
-    }
-    else
-    {
+    } else {
         GM_setValue("scoreMax", scoreMax + "");
     }
 
-    abefParam = GM_getValue("noTrsChecked", xText);
-    if (abefParam != xText)
-    {
-        noTrsChecked = abefParam;
-    }
-    else
-    {
+    ebefParam = GM_getValue("noTrsChecked", xText);
+    if (ebefParam != xText) {
+        noTrsChecked = ebefParam;
+    } else {
         GM_setValue("noTrsChecked", noTrsChecked);
     }
 }
 
-function updateAbefConfiguration()
+
+function updateEbefConfiguration()
 {
     GM_setValue("scoreThreshold", scoreThreshold + "");
     GM_setValue("percentThreshold", percentThreshold + "");
     GM_setValue("scoreMax", scoreMax + "");
     GM_setValue("noTrsChecked",noTrsChecked);
 }
+
 
 function showFilteredCount()
 {
@@ -125,89 +113,95 @@ function showFilteredCount()
     configNode.parentNode.appendChild(filteredNode);
 }
 
+
 function newFilterValues(event)
 {
-    if (event != null)
-    {
+    if (event != null) {
         event.preventDefault();
         event.stopPropagation();
     }
-    if (configNode.nextSibling == changeNode)
-    {
+
+    if (configNode.nextSibling == changeNode) {
         configNode.parentNode.removeChild(changeNode);
     }
 
     var fNode = document.getElementById("fbScore");
     scoreThreshold = fNode.value - 0;       // force numeric
+
     fNode = document.getElementById("fbPercent");
     percentThreshold = fNode.value - 0;
+
     fNode = document.getElementById("fbMax");
-    if (isNaN(parseInt(fNode.value)))
-    {
+    if (isNaN(parseInt(fNode.value))) {
         scoreMax = "";
-    }
-    else
-    {
+    } else {
         scoreMax = fNode.value - 0;
     }
+
     fNode = document.getElementById("fbTrs");
     noTrsChecked = fNode.checked;
-    updateAbefConfiguration();
+    updateEbefConfiguration();
     walkTheListings();
 }
 
+
 function changedFilter(event)
 {
-    if (event != null)
-    {
+    if (event != null) {
         event.preventDefault();
         event.stopPropagation();
     }
-    if (configNode.nextSibling == changeNode)
-    {
+
+    if (configNode.nextSibling == changeNode) {
         return;
     }
-    if (configNode.nextSibling == filteredNode)
-    {
+
+    if (configNode.nextSibling == filteredNode) {
         configNode.parentNode.removeChild(filteredNode);
     }
+
     configNode.parentNode.appendChild(changeNode);
 }
 
+
 function getFeedbackScore(textNode)
 {
-    if (!textNode.nodeValue)
-    {
+    if (!textNode.nodeValue) {
         return xText;
     }
+
     var s = textNode.nodeValue;
     var result;
-    if ((result = s.match(/([\.,0-9]+)/)) != null)
-    {
+
+    if ((result = s.match(/([\.,0-9]+)/)) != null) {
         // remove comma and period
         result[1] = result[1].replace(/[\.,]/g, "");
         return result[1] - 0;   // force numeric
     }
+
     return xText;
 }
 
+
 function getFeedbackPercent(textNode)
 {
-    if (!textNode.nodeValue)
-    {
+    if (!textNode.nodeValue) {
         return xText;
     }
+
     var s = textNode.nodeValue;
     var result;
+
     // globalize by accepting comma as a period
-    if ((result = s.match(/([\.,0-9]+)%/)) != null)
-    {
+    if ((result = s.match(/([\.,0-9]+)%/)) != null) {
         // change comma, if any, to period
         result[1] = result[1].replace(/,/, ".");
         return result[1] - 0;   // force numeric
     }
+
     return xText;
 }
+
 
 function shouldFilterOut(spanNode)
 {
@@ -216,57 +210,53 @@ function shouldFilterOut(spanNode)
     var validPercent = false;
     var feedbackScore = 0;
     var feedbackPercent = 0;
-
     var parsed;
-    while (!validScore || !validPercent)
-    {
+
+    while (!validScore || !validPercent) {
         parsed = false;
-        if (cNode && spanNode.nodeName.toUpperCase() === spanText && cNode.nodeName === "#text")
-        {
-            if (!validPercent)
-            {
-                if ((feedbackPercent = getFeedbackPercent(cNode)) != xText)
-                {
+        if (cNode && spanNode.nodeName.toUpperCase() === spanText && cNode.nodeName === "#text") {
+            if (!validPercent) {
+                if ((feedbackPercent = getFeedbackPercent(cNode)) != xText) {
                     validPercent = true;
                     parsed = true;
                 }
             }
-            if (!validScore && !parsed)
-            {
-                if ((feedbackScore = getFeedbackScore(cNode)) != xText)
-                {
+
+            if (!validScore && !parsed) {
+                if ((feedbackScore = getFeedbackScore(cNode)) != xText) {
                     validScore = true;
                 }
             }
         }
+
         spanNode = spanNode.nextSibling;
-        if (!spanNode)
-        {
+        if (!spanNode) {
             break;
         }
+
         cNode = spanNode.firstChild;
     }
 
     var retValue = 0;
-    if (validScore && feedbackScore < scoreThreshold)
-    {
+    if (validScore && feedbackScore < scoreThreshold) {
         retValue |= FILTER_SCORE_FLAG;
     }
-    if (validPercent && feedbackPercent < percentThreshold)
-    {
+
+    if (validPercent && feedbackPercent < percentThreshold) {
         retValue |= FILTER_PERCENT_FLAG;
     }
-    if (validScore && !isNaN(parseInt(scoreMax)) && feedbackScore > scoreMax)
-    {
+
+    if (validScore && !isNaN(parseInt(scoreMax)) && feedbackScore > scoreMax) {
         retValue |= FILTER_SCOREMAX_FLAG;
     }
-    if (retValue)
-    {
+
+    if (retValue) {
         filteredCount++;
     }
 
     return retValue;
 }
+
 
 function walkTheListings()
 {
@@ -274,82 +264,75 @@ function walkTheListings()
 
     var xpath = "//div[@id='ResultSetItems']//li[contains(@id, 'item') and contains(@class, 'lvresult')]";
 
-    var liNodes = document.evaluate(
-        xpath,
-        document,
-        null,
-        XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
-        null
-    );
+    var liNodes = document.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 
     var entryCounter = 0;
-    for (var loopVar = 0; loopVar < liNodes.snapshotLength; loopVar++)
-    {
+    for (var loopVar = 0; loopVar < liNodes.snapshotLength; loopVar++) {
         var liNode = liNodes.snapshotItem(loopVar);
         var detailNode = liNode.firstChild;
-        while (detailNode && (!detailNode.className || detailNode.nodeName.toUpperCase() !== ulText || detailNode.className.indexOf('lvdetails') < 0))
-        {
+        while (detailNode && (!detailNode.className ||
+			      detailNode.nodeName.toUpperCase() !== ulText ||
+			      detailNode.className.indexOf('lvdetails') < 0)) {
             detailNode = detailNode.nextSibling;
         }
-        if (!detailNode)
-        {
+
+        if (!detailNode) {
             continue;
         }
 
         var subLiNode = detailNode.firstChild;
         var spanNode = null;
         var found = false;
+
         while (subLiNode)
         {
             spanNode = subLiNode.firstChild;
             while (spanNode)
             {
-                if (spanNode.nodeName.toUpperCase() === spanText && spanNode.className === 'selrat')
-                {
+                if (spanNode.nodeName.toUpperCase() === spanText &&
+		    spanNode.className === 'selrat')
+		{
                     found = true;
                     break;
                 }
+
                 spanNode = spanNode.nextSibling;
             }
-            if (!found)
-            {
+
+            if (!found) {
                 subLiNode = subLiNode.nextSibling;
-            }
-            else
-            {
+            } else {
                 break;
             }
         }
-        if (!spanNode)
-        {
+
+        if (!spanNode) {
             continue;
         }
 
         var topSellerFilter = false;
-        if (noTrsChecked)
-        {
+        if (noTrsChecked) {
             var checkLiNode = subLiNode.nextSibling;
             while (checkLiNode)
             {
-                if (checkLiNode.nodeName.toUpperCase() === liText)
-                {
+                if (checkLiNode.nodeName.toUpperCase() === liText) {
                     var checkNode = checkLiNode.firstChild;
                     while (checkNode && checkNode.nodeName.toUpperCase() !== spanText)
                     {
                         checkNode = checkNode.nextSibling;
                     }
-                    if (checkNode)
-                    {
-                        // got SPAN
+
+                    if (checkNode) { // got SPAN
                         checkNode = checkNode.firstChild;
                     }
-                    while (checkNode && (checkNode.nodeName.toUpperCase() !== imgText || checkNode.className.indexOf("iconETRS") < 0))
+
+                    while (checkNode && (checkNode.nodeName.toUpperCase() !== imgText ||
+					 checkNode.className.indexOf("iconETRS") < 0))
                     {
                         checkNode = checkNode.nextSibling;
                     }
-                    if (checkNode)
-                    {
-                        // found top seller IMG
+
+                    if (checkNode) { // found top seller IMG
                         topSellerFilter = true;
                         filteredCount++;
                         break;
@@ -359,51 +342,32 @@ function walkTheListings()
             }
         }
 
-        if (topSellerFilter || shouldFilterOut(spanNode))
-        {
+        if (topSellerFilter || shouldFilterOut(spanNode)) {
             if (liNode.style.display != noneText)
             {
                 liNode.style.display = noneText;
             }
-        }
-        else
-        {
+        } else {
             liNode.style.display = blockText;
         }
     }
     showFilteredCount();
 }
 
+
 function buildControls()
 {
-    var xpath;
-    var divNodes;
-
-    xpath = "//div[@id='RelatedSearchesDF']";
-
-    divNodes = document.evaluate(
-        xpath,
-        document,
-        null,
-        XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
-        null
-    );
+    var xpath = "//div[@id='RelatedSearchesDF']";
+    var divNodes = document.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 
     var isRelatedSearch = true;
-    if (divNodes.snapshotLength <= 0)
-    {
+    if (divNodes.snapshotLength <= 0) {
 	//              return false;
         isRelatedSearch = false;
         xpath = "//div[@id='TopPanelDF']";
-        divNodes = document.evaluate(
-            xpath,
-            document,
-            null,
-            XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
-            null
-        );
-        if (divNodes.snapshotLength <= 0)
-        {
+        divNodes = document.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+
+        if (divNodes.snapshotLength <= 0) {
             return false;
         }
     }
@@ -412,18 +376,16 @@ function buildControls()
     filteredNode = document.createTextNode("\u00a0 0 entries filtered from view");
 
     var divSibling;
-
     divSibling = divNodes.snapshotItem(0);
 
     var newDivNode = document.createElement(divText);
-
-    if (!isRelatedSearch)
-    {
+    if (!isRelatedSearch) {
         newDivNode.appendChild(document.createElement(brText));
     }
 
     var span1Node = document.createElement(spanText);
     span1Node.style.fontWeight = "bold";
+
     var input1Node = document.createElement(inputText);
     input1Node.type = "text";
     input1Node.size = 4;
@@ -431,12 +393,14 @@ function buildControls()
     input1Node.setAttribute("id", "fbScore");
     input1Node.defaultValue = scoreThreshold;
     input1Node.addEventListener('change', changedFilter, false);
+
     span1Node.appendChild(input1Node);
     span1Node.appendChild(document.createTextNode(" Minimum feedback score\u00a0\u00a0\u00a0\u00a0"));
-
     newDivNode.appendChild(span1Node);
+
     var span2Node = document.createElement(spanText);
     span2Node.style.fontWeight = "bold";
+
     var input2Node = document.createElement(inputText);
     input2Node.type = "text";
     input2Node.size = 4;
@@ -444,12 +408,14 @@ function buildControls()
     input2Node.setAttribute("id", "fbPercent");
     input2Node.defaultValue = percentThreshold;
     input2Node.addEventListener('change', changedFilter, false);
+
     span2Node.appendChild(input2Node);
     span2Node.appendChild(document.createTextNode("% Minimum positive feedback\u00a0\u00a0\u00a0\u00a0"));
     newDivNode.appendChild(span2Node);
 
     var spanMaxNode = document.createElement(spanText);
     spanMaxNode.style.fontWeight = "bold";
+
     var inputMaxNode = document.createElement(inputText);
     inputMaxNode.type = "text";
     inputMaxNode.size = 4;
@@ -457,12 +423,14 @@ function buildControls()
     inputMaxNode.setAttribute("id", "fbMax");
     inputMaxNode.defaultValue = scoreMax;
     inputMaxNode.addEventListener('change', changedFilter, false);
+
     spanMaxNode.appendChild(inputMaxNode);
     spanMaxNode.appendChild(document.createTextNode(" Maximum feedback score (blank to disable)\u00a0\u00a0\u00a0\u00a0"));
     newDivNode.appendChild(spanMaxNode);
 
     var spanTrsNode = document.createElement(spanText);
     spanTrsNode.style.fontWeight = "bold";
+
     var inputTrsNode = document.createElement(inputText);
     inputTrsNode.type = "checkbox";
     inputTrsNode.size = 4;
@@ -471,6 +439,7 @@ function buildControls()
     inputTrsNode.checked = noTrsChecked;
     inputTrsNode.defaultChecked = noTrsChecked;
     inputTrsNode.addEventListener('change', changedFilter, false);
+
     spanTrsNode.appendChild(inputTrsNode);
     spanTrsNode.appendChild(document.createTextNode(" No Top-rated Sellers"));
     newDivNode.appendChild(spanTrsNode);
@@ -490,20 +459,20 @@ function buildControls()
     return true;
 }
 
+
 function init()
 {
-    getAbefConfiguration();
-    if (!buildControls())
-    {
+    getEbefConfiguration();
+    if (!buildControls()) {
         return;
     }
     walkTheListings();
 }
 
+
 function main()
 {
-    if (!GM_setValue)
-    {
+    if (!GM_setValue) {
         return;
     }
     init();
