@@ -31,6 +31,7 @@
 // ==/UserScript==
 //
 // Version 1.0, released April 2017
+// -- seller blacklist, TODO: UI for editing blacklist
 
 var defaultScoreThreshold = 50;
 var defaultPercentThreshold = 98.5;
@@ -58,6 +59,8 @@ var scoreThreshold = defaultScoreThreshold;
 var percentThreshold = defaultPercentThreshold;
 var scoreMax = defaultScoreMax;
 var noTrsChecked = false;
+
+var sellerBlacklist = ["example1", "example2"];
 
 var ebefActiveControl = null;
 
@@ -271,8 +274,8 @@ function walkTheListings()
         var liNode = liNodes.snapshotItem(loopVar);
         var detailNode = liNode.firstChild;
         while (detailNode && (!detailNode.className ||
-			      detailNode.nodeName.toUpperCase() !== ulText ||
-			      detailNode.className.indexOf('lvdetails') < 0)) {
+                              detailNode.nodeName.toUpperCase() !== ulText ||
+                              detailNode.className.indexOf('lvdetails') < 0)) {
             detailNode = detailNode.nextSibling;
         }
 
@@ -283,6 +286,8 @@ function walkTheListings()
         var subLiNode = detailNode.firstChild;
         var spanNode = null;
         var found = false;
+        var sellerName = null;
+        var sellerFilter = false;
 
         while (subLiNode)
         {
@@ -290,8 +295,15 @@ function walkTheListings()
             while (spanNode)
             {
                 if (spanNode.nodeName.toUpperCase() === spanText &&
-		    spanNode.className === 'selrat')
-		{
+                    spanNode.className === 'selrat')
+                {
+                    sellerName = subLiNode.textContent.match(/Seller: (.*)\(/);
+                    if (sellerName) {
+                        if (sellerBlacklist.includes(sellerName[1])) {
+                            sellerFilter = true;
+                            filteredCount++;
+                        }
+                    }
                     found = true;
                     break;
                 }
@@ -310,7 +322,6 @@ function walkTheListings()
             continue;
         }
 
-        var topSellerFilter = false;
         if (noTrsChecked) {
             var checkLiNode = subLiNode.nextSibling;
             while (checkLiNode)
@@ -327,13 +338,13 @@ function walkTheListings()
                     }
 
                     while (checkNode && (checkNode.nodeName.toUpperCase() !== imgText ||
-					 checkNode.className.indexOf("iconETRS") < 0))
+                                         checkNode.className.indexOf("iconETRS") < 0))
                     {
                         checkNode = checkNode.nextSibling;
                     }
 
                     if (checkNode) { // found top seller IMG
-                        topSellerFilter = true;
+                        sellerFilter = true;
                         filteredCount++;
                         break;
                     }
@@ -342,7 +353,7 @@ function walkTheListings()
             }
         }
 
-        if (topSellerFilter || shouldFilterOut(spanNode)) {
+        if (sellerFilter || shouldFilterOut(spanNode)) {
             if (liNode.style.display != noneText)
             {
                 liNode.style.display = noneText;
@@ -362,7 +373,7 @@ function buildControls()
 
     var isRelatedSearch = true;
     if (divNodes.snapshotLength <= 0) {
-	//              return false;
+        //              return false;
         isRelatedSearch = false;
         xpath = "//div[@id='TopPanelDF']";
         divNodes = document.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
@@ -480,4 +491,3 @@ function main()
 
 
 main();
-
